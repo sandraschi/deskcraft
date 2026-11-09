@@ -1,0 +1,21 @@
+[package]
+name = "deskcraft-mcp"
+description = "deskcraft L2: one binary for the CLI (every verb takes --json) and the MCP stdio server."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "deskcraft"
+path = "src/main.rs"
+
+[dependencies]
+deskcraft-core = { path = "../deskcraft-core" }
+deskcraft-store = { path = "../deskcraft-store" }
+craft-biz.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+
+[lints]
+workspace = true

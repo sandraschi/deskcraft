@@ -1,0 +1,10 @@
+/target
+*.bak
+*.tmp
+*.exe
+*.db
+*.db-wal
+*.db-shm
+*.csv
+*.eml
+outbox/

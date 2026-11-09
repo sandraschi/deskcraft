@@ -1,0 +1,20 @@
+[package]
+name = "deskcraft-core"
+description = "deskcraft L1: command bus, .eml/maildir ingest with threading, business-hours SLA, reply drafts as .eml, macros, escalation and signal events, demo seed."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+deskcraft-store = { path = "../deskcraft-store" }
+craft-biz.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+mail-parser.workspace = true
+sha2.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true
