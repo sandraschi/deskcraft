@@ -1,0 +1,22 @@
+[package]
+name = "deskcraft-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "deskcraft-app"
+path = "src/main.rs"
+
+[dependencies]
+craft-biz = { workspace = true }
+craft-biz-ui = { workspace = true }
+deskcraft-core = { path = "../deskcraft-core" }
+deskcraft-store = { path = "../deskcraft-store" }
+chrono = { workspace = true }
+clap = { workspace = true }
+eframe = { workspace = true }
+egui = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
