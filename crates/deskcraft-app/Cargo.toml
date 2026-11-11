@@ -1,5 +1,6 @@
 [package]
 name = "deskcraft-app"
+description = "deskcraft L3: help desk window (views, ticket page with conversation and reply composer, status board, unhappy customers, macros, ingest) on the craft-biz-ui suite frame."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -15,8 +16,12 @@ craft-biz-ui = { workspace = true }
 deskcraft-core = { path = "../deskcraft-core" }
 deskcraft-store = { path = "../deskcraft-store" }
 chrono = { workspace = true }
-clap = { workspace = true }
-eframe = { workspace = true }
 egui = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
+rfd = "0.17"
+
+[dev-dependencies]
+egui_kittest = "0.37"
+
+[lints]
+workspace = true

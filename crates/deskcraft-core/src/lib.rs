@@ -559,7 +559,8 @@ pub fn ingest_bytes(d: &Desk, raw: &[u8], source: Option<&str>) -> Result<Outcom
 
 // ---------- tickets ----------
 
-fn sla_json(t: &Ticket, as_of: NaiveDateTime) -> Value {
+/// SLA clocks of one ticket (first response, resolution) as JSON.
+pub fn sla_json(t: &Ticket, as_of: NaiveDateTime) -> Value {
     let (fr_target, res_target) = sla::targets(t.priority);
     let (fr_state, fr_used, fr_due) =
         sla::clock(t.opened_at, t.first_response_at, as_of, fr_target);

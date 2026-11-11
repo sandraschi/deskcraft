@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - 2026-11-11
+
+- Desktop window rebuilt on the shared craft-biz-ui frame, laid out like a help desk: views with counts, ticket table with SLA badges, ticket page (properties, SLA bars, conversation, reply composer with macro picker, drafts with Mark as sent and Show in folder, internal notes, escalation to taskcraft, history), status board with drag and drop, unhappy customers with Send to gaincraft, macros, ingest with folder picker and dry run, settings.
+- All 14 tools reachable from the window (coverage test). The 0.1.x window (2026-11-10) reached 1 of 14 tools; it is replaced.
+- Core: `sla_json` is public (SLA clocks without side effects, for views).
+- 4 window tests with egui_kittest: every view and the ticket page render; reply, draft, mark-sent, note and status go through dispatch; a board drag changes the status and a drop on New is refused.
+
 ## 0.1.0 - 2026-11-09
 
 - Tier 1: deskcraft-store (tickets, deduplicated messages, history, macros, emitted events), deskcraft-core (`mail.rs` parse and `.eml` drafts via mail-parser, threading, `sla.rs` business hours with AT holidays, escalation and signal events, demo seed), `deskcraft` binary (CLI with `--json`, conversation view, MCP stdio, 14 tools).

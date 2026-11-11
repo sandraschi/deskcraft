@@ -2,6 +2,22 @@
 
 Task-oriented guide. Every command below also exists as an MCP tool (see [docs/TOOLS.md](docs/TOOLS.md)); add `--json` to any command for machine-readable output. `deskcraft <command> --help` shows all options.
 
+## In the window
+
+| Task | Where in `deskcraft-app` |
+|---|---|
+| What needs an answer | Views: All unsolved, SLA at risk |
+| Answer a ticket | Click it, write in Reply (or pick a macro), Create draft, send it from your mail client, then Mark as sent |
+| Take, prioritise, tag | Ticket page, left column |
+| Note for the team | Ticket page, Internal note |
+| Hand to engineering | Ticket page, Escalate to taskcraft |
+| Tell gaincraft about unhappy customers | Unhappy customers, Send to gaincraft |
+| Move many tickets | Board: drag between New, Open, Pending, Solved |
+| Read new mail | Ingest mail: choose the folder, Dry run, Ingest |
+| Anything else | Ctrl+K: every command with a form |
+
+Keys: Ctrl+K commands, Ctrl+mouse wheel or Ctrl +/- zoom, Ctrl+0 reset, F5 reload. Theme, language and zoom are kept in `ui.json` next to the database.
+
 ## First setup
 
 ```powershell

@@ -2,7 +2,7 @@
 
 Support tickets built from e-mail for a small business: threading, business-hours SLA, reply drafts as `.eml`, macros, escalation to taskcraft and unhappy-customer signals to gaincraft. One SQLite file, one binary that is both CLI and MCP server. Part of the back-office craft suite (replaces Zendesk / Freshdesk / a shared support inbox).
 
-Status: **v0.1.0, Tier 1** (store + CLI + MCP, tested). No desktop window yet. Synthetic demo mail only. **Nothing is ever sent by deskcraft**: replies are `.eml` drafts you send from your mail client.
+Status: **v0.2.0, Tier 2** (store + CLI + MCP + desktop window, tested). Synthetic demo mail only. **Nothing is ever sent by deskcraft**: replies are `.eml` drafts you send from your mail client.
 
 - How to use it day to day: [HELP.md](HELP.md)
 - What it is for and where it stops: [docs/PRD.md](docs/PRD.md)
@@ -18,6 +18,25 @@ Status: **v0.1.0, Tier 1** (store + CLI + MCP, tested). No desktop window yet. S
 - **Replies:** `.eml` drafts with correct In-Reply-To / References, UTF-8 subject encoding, signature; macros fill `{{first_name}}`, `{{ticket}}`, `{{subject}}` and can set a status and tags.
 - **Escalation:** `ticket.escalated` to taskcraft (becomes an issue there), once per ticket.
 - **Signals:** deterministic DE/EN keyword heuristic (unzufrieden, kündigen, Frechheit, refund, ...) finds unhappy customers; `--emit` sends `signal.negative` to gaincraft, once per ticket.
+
+## Desktop window
+
+`deskcraft-app` is laid out like a help desk:
+
+- **Views** on the left with live counts: all unsolved, unassigned, urgent and high, SLA at risk, pending, recently solved.
+- **Ticket table** with status dot, priority, status, SLA badge (due time, at risk, breached), assignee, tags.
+- **Ticket page:** properties on the left (status, priority, assignee with "Take it", tags, both SLA clocks as bars, escalate to taskcraft, history), the conversation in the middle (customer, replies, drafts, internal notes), a reply composer with macro picker and an internal note box. Drafts show "Mark as sent" and "Show in folder".
+- **Board** by status: drag to change it, optional swimlanes by priority. Dropping on New is refused (only mail makes a ticket new).
+- **Unhappy customers** with the matched keywords and "Send to gaincraft".
+- **Macros**, **Ingest mail** (folder or file picker, dry run), **Settings** (support address, sender, signature).
+
+Every change goes through the same command path as CLI and MCP. Ctrl+K lists every tool with a form, and a test fails if a tool has no place in the window. High-contrast light and dark, Ctrl+mouse wheel zoom, German and English.
+
+```powershell
+deskcraft-app --demo                 # on an empty desk: load the demo first
+deskcraft-app --select D-3           # open a ticket directly
+deskcraft-app --dark --lang en --view 6
+```
 
 ## Quick start
 
@@ -55,4 +74,4 @@ Needs `../craft-biz` checked out next to this repo.
 
 ## Not done (honest list)
 
-See the "Gaps" section of [docs/PRD.md](docs/PRD.md). In short: no window, no IMAP, no sending, pending does not pause the SLA clock, no attachments stored.
+See the "Gaps" section of [docs/PRD.md](docs/PRD.md). In short: no IMAP, no sending, pending does not pause the SLA clock, no attachments stored.

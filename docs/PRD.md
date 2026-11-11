@@ -2,13 +2,13 @@
 
 ## What it is
 
-A local-first support desk for a 1-10 person business: customer e-mails become tickets, replies are drafted with threading intact, service levels are measured in business hours, and problems flow on to engineering (taskcraft) and account health (gaincraft). Pure Rust, ArtCraft pattern: one engine, CLI + MCP today, egui later.
+A local-first support desk for a 1-10 person business: customer e-mails become tickets, replies are drafted with threading intact, service levels are measured in business hours, and problems flow on to engineering (taskcraft) and account health (gaincraft). Pure Rust, ArtCraft pattern: one engine, CLI + MCP + desktop window.
 
 Part of the back-office craft suite: `mcp-central-docs/projects/craft-fleet-expansion/BACKOFFICE_CRAFT_SUITE.md`, section 4.6.
 
 ## Users
 
-- The person answering support mail (often the owner). Uses the CLI today, the egui app later.
+- The person answering support mail (often the owner). Uses the desktop window or the CLI.
 - Agents over MCP: triage (priority, tags, assignee), draft replies from macros, watch the SLA, escalate. Every agent action is in the ticket history with actor `agent`.
 
 ## Jobs
@@ -27,6 +27,7 @@ Part of the back-office craft suite: `mcp-central-docs/projects/craft-fleet-expa
 - Reply drafts as RFC 5322 `.eml` (CRLF, UTF-8, RFC 2047 subject, In-Reply-To, References), macros with placeholders, mark-as-sent.
 - Bus events: `ticket.escalated` -> taskcraft (verified end to end), `signal.negative` -> gaincraft (queued until gaincraft exists).
 - 14 MCP tools (docs/TOOLS.md, generated and test-checked), CLI with tables and a conversation view.
+- Desktop window (0.2.0): views with counts, ticket table with SLA badges, ticket page (properties, SLA bars, conversation, reply composer with macros, drafts with mark-as-sent, internal notes, escalation, history), status board, unhappy customers, macros, ingest, settings. All 14 tools reachable (test-checked).
 
 ## Boundaries
 
@@ -38,7 +39,7 @@ Part of the back-office craft suite: `mcp-central-docs/projects/craft-fleet-expa
 
 ## Gaps (honest)
 
-- No egui window.
+- The window keeps no composer text between sessions (an unsent reply that was not turned into a draft is lost on close).
 - Pending does not pause the SLA clock; SLA targets and business hours are constants, not settings.
 - Attachments are not stored (body text only; HTML-only mail is converted to text).
 - Subject fallback compares case-insensitively for ASCII only (SQLite `lower`); "Büro" vs "BÜRO" would not match.
@@ -48,6 +49,6 @@ Part of the back-office craft suite: `mcp-central-docs/projects/craft-fleet-expa
 
 ## Next
 
-1. egui app: ticket list with SLA colours, conversation view, reply composer with macro picker.
+1. Attachments: store them on ingest and list them in the conversation.
 2. SLA settings (hours, targets) and pause on pending.
 3. lookcraft store as an ingest source; then SMTP send behind `--send` with Credential Manager.

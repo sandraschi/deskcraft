@@ -10,7 +10,7 @@ then `docs/PRD.md` here.
 - `crates/deskcraft-store` (L1): tickets, messages, history, macros, emitted events on SQLite WAL.
 - `crates/deskcraft-core` (L1): `Command` bus, `dispatch`, MCP catalog, `mail.rs` (parse via mail-parser, subject normalization, `.eml` drafts), `sla.rs` (business hours), ingest and threading, escalation, signals, demo seed.
 - `crates/deskcraft-mcp` (L2): `deskcraft` binary. CLI verbs map onto the same tool calls as MCP.
-- No L3 (egui) yet.
+- `crates/deskcraft-app` (L3): desktop window on `craft-biz-ui::app::Shell`. Views change data only via `Frame::run`/`form` (dispatch); reads use the store and `sla_json`. `COVERAGE` maps every tool to its place; a test enforces it.
 - Shared kernel: `../craft-biz` (holidays, bus, MCP loop, tools_markdown, confinement).
 
 ## Invariants (never weaken)
