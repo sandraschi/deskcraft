@@ -51,7 +51,10 @@ impl App {
         if let Ok(sla_res) = deskcraft_core::sla_status(&self.ctx.desk, now_dt) {
             if let Some(rows) = sla_res.get("rows").and_then(|v| v.as_array()) {
                 for r in rows {
-                    let first = r.get("first_response").and_then(|v| v.as_str()).unwrap_or("");
+                    let first = r
+                        .get("first_response")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
                     let resol = r.get("resolution").and_then(|v| v.as_str()).unwrap_or("");
                     if first == "breached" || resol == "breached" {
                         if let Some(k) = r.get("ticket").and_then(|v| v.as_str()) {
@@ -213,17 +216,11 @@ impl eframe::App for App {
                             };
 
                             let is_breached = self.breached_keys.contains(&t.key);
-                            let req = t
-                                .requester_name
-                                .as_deref()
-                                .unwrap_or(&t.requester_email);
+                            let req = t.requester_name.as_deref().unwrap_or(&t.requester_email);
 
                             ui.group(|ui| {
                                 if ui
-                                    .selectable_label(
-                                        is_sel,
-                                        format!("{}: {}", t.key, t.subject),
-                                    )
+                                    .selectable_label(is_sel, format!("{}: {}", t.key, t.subject))
                                     .clicked()
                                 {
                                     to_select = Some(t.clone());
@@ -235,10 +232,7 @@ impl eframe::App for App {
                                     );
                                     ui.label(req);
                                     if is_breached {
-                                        ui.colored_label(
-                                            Color32::from_rgb(231, 76, 60),
-                                            "BREACH",
-                                        );
+                                        ui.colored_label(Color32::from_rgb(231, 76, 60), "BREACH");
                                     }
                                 });
                             });
@@ -278,10 +272,7 @@ impl eframe::App for App {
                                     (Color32::from_rgb(52, 152, 219), "Customer Message")
                                 };
 
-                                let sender = m
-                                    .from_name
-                                    .as_deref()
-                                    .unwrap_or(&m.from_email);
+                                let sender = m.from_name.as_deref().unwrap_or(&m.from_email);
 
                                 ui.group(|ui| {
                                     ui.horizontal(|ui| {
@@ -324,7 +315,10 @@ impl eframe::App for App {
             ui.label(format!(
                 "Tickets in View: {} | Selected: {}",
                 self.tickets.len(),
-                self.selected_ticket.as_ref().map(|t| t.key.as_str()).unwrap_or("-")
+                self.selected_ticket
+                    .as_ref()
+                    .map(|t| t.key.as_str())
+                    .unwrap_or("-")
             ));
             ui.separator();
             ui.label(&self.status_msg);
