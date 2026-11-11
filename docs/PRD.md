@@ -52,3 +52,21 @@ Part of the back-office craft suite: `mcp-central-docs/projects/craft-fleet-expa
 1. Attachments: store them on ingest and list them in the conversation.
 2. SLA settings (hours, targets) and pause on pending.
 3. lookcraft store as an ingest source; then SMTP send behind `--send` with Credential Manager.
+
+## UI/UX Architecture & Menu Bar Standard
+
+In accordance with [`CRAFT_MENU_BAR_STANDARD.md`](../../mcp-central-docs/standards/rust-artcraft/CRAFT_MENU_BAR_STANDARD.md):
+- **Pattern 2 (Viewport-Centric Craft Workstation):** Persistent support ticket conversation stage and reply composer viewport with SLA monitor badges. Top quick button row acts as accelerators into the `View` menu. To add a new ticket queue or customer view:
+  1. Register a visibility toggle in the `View` or `Window` menu.
+  2. Add an entry in the sidebar Ticket Queue / Macro toolbox.
+  3. Wire the action directly into the universal `Command::dispatch` bus.
+- **Top Menu Bar Hierarchy:**
+  - `File`: New Ticket (`Ctrl+N`), Ingest Mailbox / EML (`Ctrl+O`), Open Recent ▸, Save Draft (`Ctrl+S`), Export Thread / EML (`Ctrl+E`), Close Ticket (`Ctrl+W`), Quit (`Ctrl+Q`).
+  - `Edit`: Undo (`Ctrl+Z`), Redo (`Ctrl+Y`), Cut, Copy, Paste, Select All, Preferences (`Ctrl+,`).
+  - `View`: Ticket Queue List, Active Conversation Thread, Reply Composer, Status Board, SLA Analytics, Theme (`Dark`/`Light`).
+  - `Insert`: Add Ticket Note, Insert Macro Template, Attach File, Add Escalation Flag.
+  - `Modify`: Update Ticket Status, Reassign Priority, Edit Tags, Update Assignee.
+  - `Commands`: Run Ingest Sweep, Calculate SLA Breach Risk, Emit Escalation to TaskCraft, Emit Negative Signal to GainCraft.
+  - `Window`: Reset Layout, Ticket Viewport, Conversation History, Drafts Drawer, SLA Watchdog.
+  - `Help` (Mandatory 5-Dialog Suite): `Command Palette...` (`Ctrl+K`), `Keyboard Shortcuts...` (`F1`), `Project Files & Docs...`, `Licenses & Notices...`, `About DeskCraft`.
+- **Behavioral Mechanics:** Smooth `switch_on_hover` between top-level menus, zero-unsafe immediate-mode rendering, and headless `--smoke` parity.
