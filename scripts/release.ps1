@@ -60,8 +60,8 @@ $dirty = git status --porcelain
 if ($dirty -and -not $AllowDirty) { Fail "working tree is dirty:`n$dirty" }
 if ($dirty) { Write-Info 'dirty tree allowed (dry run)' } else { Write-Ok 'tree clean' }
 
-$Trunk = ((git symbolic-ref --short refs/remotes/origin/HEAD 2>$null) -replace '^origin/', '').Trim()
-$branch = (git rev-parse --abbrev-ref HEAD).Trim()
+$Trunk = ("$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null | Where-Object { $_ -is [string] } | Select-Object -First 1)" -replace '^origin/', '').Trim()
+$branch = "$(git rev-parse --abbrev-ref HEAD 2>$null | Where-Object { $_ -is [string] } | Select-Object -First 1)".Trim()
 if (-not $Trunk) { if (@('main', 'master') -contains $branch) { $Trunk = $branch } else { $Trunk = 'main' } }
 if ($branch -ne $Trunk) { Fail "on branch '$branch', releases are cut from $Trunk" }
 $extra = git branch --format='%(refname:short)' | Where-Object { $_ -ne $Trunk }
@@ -103,8 +103,10 @@ Write-Phase 'Phase 2: release build and smoke'
 $targetDir = Get-CraftTargetDir $RepoRoot
 $binDir = Join-Path $targetDir 'release'
 $exes = @()
-foreach ($pair in @(@($cfg.AppPackage, $cfg.AppBin), @($cfg.CliPackage, $cfg.CliBin))) {
-    if (-not $pair[1]) { continue }
+$builtBins = @()
+foreach ($pair in @(@($cfg.AppPackage, $cfg.AppBin), @($cfg.CliPackage, $cfg.CliBin), @($cfg.McpPackage, $cfg.McpBin))) {
+    if (-not $pair[1] -or ($builtBins -contains $pair[1])) { continue }
+    $builtBins += $pair[1]
     $busy = Get-Process -Name $pair[1] -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $binDir "$($pair[1]).exe") }
     if ($busy) { Fail "$($pair[1]).exe is running from $binDir (PID $($busy[0].Id)); close it, it blocks the release build" }
     Need (Invoke-CraftBuild -Package $pair[0] -Bin $pair[1] -Release) "release build of $($pair[1])"
@@ -122,9 +124,10 @@ if ($cfg.CliBin -and @($cfg.CliSmoke).Count -gt 0) {
     & (Join-Path $binDir "$($cfg.CliBin).exe") @(Expand-CraftArgs $cfg.CliSmoke $smokeDb) | Out-Null; Need $LASTEXITCODE "$($cfg.CliBin) smoke"
     $smoked += 'cli'
 }
-if ($cfg.CliBin -and @($cfg.McpSmoke).Count -gt 0) {
+if ($cfg.McpBin -and ($cfg.Mcpb -or @($cfg.McpSmoke).Count -gt 0)) {
+    $mcpSmokeArgs = if (@($cfg.McpSmoke).Count -gt 0) { $cfg.McpSmoke } else { $cfg.McpArgs }
     $init = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"release-smoke","version":"0"}}}'
-    $resp = $init | & (Join-Path $binDir "$($cfg.CliBin).exe") @(Expand-CraftArgs $cfg.McpSmoke $smokeDb) 2>$null | Select-Object -First 1
+    $resp = $init | & (Join-Path $binDir "$($cfg.McpBin).exe") @(Expand-CraftArgs $mcpSmokeArgs $smokeDb) 2>$null | Select-Object -First 1
     if ($resp -notmatch '"result"') { Fail "MCP initialize returned no result: $resp" }
     $smoked += 'MCP initialize'
 }
@@ -155,14 +158,40 @@ if ($wantInstaller) {
     $assets += $setup
 }
 if ($cfg.LauncherZip) {
-    # Launcher-only extra (craft-launcher discovery): the same exes, never the sole download.
-    $zip = Join-Path $Dist "$Name-$Version-windows-x64-portable.zip"
-    Compress-Archive -Path $exes -DestinationPath $zip -Force -ErrorAction Stop
-    Write-Ok "launcher zip (extra): $(Split-Path -Leaf $zip)"
+    # Launcher-only extra, never the sole download. craft-deck installs the root executable
+    # named <id>.exe, so inside the zip the window is <id>.exe and a CLI that would take that
+    # name becomes <id>-cli.exe. The plain exe assets above keep their build names.
+    $zipRoot = "$Name-$Version-windows-x64-portable"
+    $zstage = Join-Path $Dist 'zip-stage'
+    $zdir = Join-Path $zstage $zipRoot
+    New-Item -ItemType Directory -Force $zdir -ErrorAction Stop | Out-Null
+    $windowBin = if ($cfg.AppBin) { $cfg.AppBin } else { $cfg.CliBin }
+    Copy-Item (Join-Path $binDir "$windowBin.exe") (Join-Path $zdir "$Name.exe") -ErrorAction Stop
+    if ($cfg.AppBin -and $cfg.CliBin) {
+        $cliName = if ($cfg.CliBin -eq $Name) { "$Name-cli.exe" } else { "$($cfg.CliBin).exe" }
+        Copy-Item (Join-Path $binDir "$($cfg.CliBin).exe") (Join-Path $zdir $cliName) -ErrorAction Stop
+    }
+    foreach ($doc in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE') {
+        $src = Join-Path $RepoRoot $doc
+        if (Test-Path $src) { Copy-Item $src $zdir -ErrorAction Stop }
+    }
+    $zip = Join-Path $Dist "$zipRoot.zip"
+    # Compress-Archive in Windows PowerShell writes '\' separators; zip entries need '/'.
+    Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+    if (Test-Path $zip) { Remove-Item $zip -Force -ErrorAction Stop }
+    $za = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach ($file in Get-ChildItem $zdir -Recurse -File) {
+            $entry = $zipRoot + '/' + $file.FullName.Substring($zdir.Length + 1).Replace('\', '/')
+            $null = [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($za, $file.FullName, $entry, [IO.Compression.CompressionLevel]::Optimal)
+        }
+    } finally { $za.Dispose() }
+    Remove-Item $zstage -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Ok "launcher zip (extra): $(Split-Path -Leaf $zip) [$windowBin.exe as $Name.exe]"
     $assets += $zip
 }
 $manifestPath = Join-Path $RepoRoot 'mcpb\manifest.json'
-if ($cfg.Mcpb -and $cfg.CliBin -and -not $SkipMcpb) {
+if ($cfg.Mcpb -and $cfg.McpBin -and -not $SkipMcpb) {
     if (-not (Test-Path $manifestPath)) { Fail 'Mcpb = $true but mcpb\manifest.json is missing' }
     $bunx = Join-Path $env:USERPROFILE '.bun\bin\bunx.exe'
     if (-not (Test-Path $bunx)) { $g = Get-Command bunx -ErrorAction SilentlyContinue; if ($g) { $bunx = $g.Source } else { Fail 'bunx not found' } }
@@ -170,7 +199,9 @@ if ($cfg.Mcpb -and $cfg.CliBin -and -not $SkipMcpb) {
     New-Item -ItemType Directory -Force $mstage -ErrorAction Stop | Out-Null
     $manifest = (Get-Content $manifestPath -Raw -ErrorAction Stop) -replace '__VERSION__', $Version
     [IO.File]::WriteAllText((Join-Path $mstage 'manifest.json'), $manifest, (New-Object Text.UTF8Encoding $false))
-    Copy-Item (Join-Path $binDir "$($cfg.CliBin).exe") $mstage -ErrorAction Stop
+    $entry = ($manifest | ConvertFrom-Json).server.entry_point
+    if ($entry -ne "$($cfg.McpBin).exe") { Fail "mcpb\manifest.json entry_point is '$entry' but McpBin builds $($cfg.McpBin).exe" }
+    Copy-Item (Join-Path $binDir "$($cfg.McpBin).exe") $mstage -ErrorAction Stop
     $mcpb = Join-Path $Dist "$Name-v$Version.mcpb"
     & $bunx '@anthropic-ai/mcpb' validate (Join-Path $mstage 'manifest.json'); Need $LASTEXITCODE 'mcpb validate manifest'
     & $bunx '@anthropic-ai/mcpb' pack $mstage $mcpb; Need $LASTEXITCODE 'mcpb pack'

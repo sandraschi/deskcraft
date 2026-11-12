@@ -22,12 +22,14 @@ function Get-CraftConfig {
     $c = Import-PowerShellDataFile -LiteralPath $path
     $defaults = @{
         Display = $c.Name; AppPackage = $null; AppBin = $null; AppArgs = @()
-        CliPackage = $null; CliBin = $null
+        CliPackage = $null; CliBin = $null; McpPackage = $null; McpBin = $null
         AppSmoke = @(); CliSmoke = @(); McpArgs = @(); McpSmoke = @()
         Installer = $true; Mcpb = $false; LauncherZip = $true
         Repository = "https://github.com/sandraschi/$($c.Name)"
     }
     foreach ($k in $defaults.Keys) { if (-not $c.ContainsKey($k)) { $c[$k] = $defaults[$k] } }
+    # The MCP server is the CLI unless the repo ships a separate one (moneycraft-mcp, aicraft-mcp).
+    if (-not $c.McpBin) { $c.McpBin = $c.CliBin; $c.McpPackage = $c.CliPackage }
     return $c
 }
 

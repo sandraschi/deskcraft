@@ -1,0 +1,89 @@
+{
+  "manifest_version": "0.2",
+  "name": "deskcraft",
+  "display_name": "DeskCraft",
+  "version": "__VERSION__",
+  "description": "deskcraft L3: help desk window (views, ticket page with conversation and reply composer, status board, unhappy customers, macros, ingest) on the craft-biz-ui suite frame.",
+  "author": {
+    "name": "Sandra Schipal",
+    "url": "https://github.com/sandraschi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/deskcraft"
+  },
+  "license": "MIT OR Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "deskcraft.exe",
+    "mcp_config": {
+      "command": "${__dirname}/deskcraft.exe",
+      "args": [
+        "mcp"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "win32"
+    ]
+  },
+  "tools": [
+    {
+      "name": "desk_status",
+      "description": "Ticket counts by status, messages, unsent drafts, support address, outbox folder."
+    },
+    {
+      "name": "desk_config",
+      "description": "Show or set the support address (mails from it count as our replies), the sender name and the reply signature."
+    },
+    {
+      "name": "desk_ingest",
+      "description": "Read .eml files or a maildir (cur/new) into tickets. Threads by Message-ID / In-Reply-To / References, then [D-n] subject tags, then same requester + subject within 30 days. Re-ingesting is a no-op. dry_run stores nothing."
+    },
+    {
+      "name": "desk_ticket_list",
+      "description": "Tickets, urgent first. Default: new, open and pending."
+    },
+    {
+      "name": "desk_ticket_show",
+      "description": "One ticket with all messages, internal notes, history and SLA clocks."
+    },
+    {
+      "name": "desk_ticket_update",
+      "description": "Change status, priority, assignee (null clears), tags (replaces the set) or add an internal note."
+    },
+    {
+      "name": "desk_reply_draft",
+      "description": "Write a reply as an .eml draft into the outbox (threaded headers, [D-n] in the subject). Nothing is sent. body or macro; {{name}}, {{first_name}}, {{ticket}}, {{subject}}, {{agent}} are filled."
+    },
+    {
+      "name": "desk_reply_mark_sent",
+      "description": "Mark a reply draft as sent (after sending it from your mail client). The first sent reply stops the first-response clock."
+    },
+    {
+      "name": "desk_macro_set",
+      "description": "Create or change a reply macro, optionally setting a status and adding tags when used."
+    },
+    {
+      "name": "desk_macro_list",
+      "description": "Reply macros."
+    },
+    {
+      "name": "desk_sla_status",
+      "description": "First-response and resolution clocks of open tickets in business hours (Mon-Fri 08:00-17:00, AT holidays excluded): met, ok, at_risk, breached."
+    },
+    {
+      "name": "desk_escalate",
+      "description": "Send a ticket to taskcraft as ticket.escalated (becomes an issue there). Once per ticket; tags it escalated."
+    },
+    {
+      "name": "desk_signals",
+      "description": "Tickets whose customer mails read as unhappy (deterministic DE/EN keywords, not AI). emit=true sends signal.negative to gaincraft once per ticket."
+    },
+    {
+      "name": "desk_demo_seed",
+      "description": "Fill an EMPTY desk with labelled demo mails (MIME encoded, threaded, one angry customer) and macros."
+    }
+  ]
+}

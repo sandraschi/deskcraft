@@ -69,13 +69,15 @@ function Run([string]$bin, [object[]]$argList) {
     exit $LASTEXITCODE
 }
 
-if ($Mcp -or $Cli) {
-    if (-not $cfg.CliBin) { Write-Host "[$($cfg.Name)] this app has no CLI / MCP binary (scripts\craft.config.psd1)" -ForegroundColor Red; exit 1 }
+if ($Mcp) {
+    if (-not $cfg.McpBin) { Write-Host "[$($cfg.Name)] this app has no MCP binary (scripts\craft.config.psd1)" -ForegroundColor Red; exit 1 }
+    Build $cfg.McpPackage $cfg.McpBin
+    Write-Host "[$($cfg.Name)] MCP stdio server; Ctrl+C to stop" -ForegroundColor Cyan
+    Run $cfg.McpBin (@($cfg.McpArgs) + $Rest)
+}
+if ($Cli) {
+    if (-not $cfg.CliBin) { Write-Host "[$($cfg.Name)] this app has no CLI binary (scripts\craft.config.psd1)" -ForegroundColor Red; exit 1 }
     Build $cfg.CliPackage $cfg.CliBin
-    if ($Mcp) {
-        Write-Host "[$($cfg.Name)] MCP stdio server; Ctrl+C to stop" -ForegroundColor Cyan
-        Run $cfg.CliBin (@($cfg.McpArgs) + $Rest)
-    }
     Run $cfg.CliBin $Rest
 }
 

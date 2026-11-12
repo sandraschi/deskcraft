@@ -12,7 +12,7 @@
     CliBin      = 'deskcraft'
     CliSmoke    = @('--db', '{db}', 'status')
     McpArgs     = @('mcp')
-    McpSmoke    = @('--db', '{db}', 'mcp')
+    McpSmoke    = @('mcp')
     Installer   = $true
-    Mcpb        = $false
+    Mcpb        = $true
 }
