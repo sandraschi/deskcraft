@@ -1,5 +1,10 @@
 # deskcraft
 
+![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)
+![Rust 1.90+](https://img.shields.io/badge/rust-1.90%2B-orange?logo=rust)
+![MCP stdio](https://img.shields.io/badge/MCP-stdio-purple)
+![ArtCraft harness](https://img.shields.io/badge/ArtCraft-harness-green)
+
 Support tickets built from e-mail for a small business: threading, business-hours SLA, reply drafts as `.eml`, macros, escalation to taskcraft and unhappy-customer signals to gaincraft. One SQLite file, one binary that is both CLI and MCP server. Part of the back-office craft suite (replaces Zendesk / Freshdesk / a shared support inbox).
 
 Status: **v0.2.0, Tier 2** (store + CLI + MCP + desktop window, tested). Synthetic demo mail only. **Nothing is ever sent by deskcraft**: replies are `.eml` drafts you send from your mail client.
