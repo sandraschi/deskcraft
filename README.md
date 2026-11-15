@@ -5,6 +5,16 @@
 ![MCP stdio](https://img.shields.io/badge/MCP-stdio-purple)
 ![ArtCraft harness](https://img.shields.io/badge/ArtCraft-harness-green)
 
+## Install
+
+Tell Cursor, Claude, Antigravity, or OpenCode: **Install this.**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1
+```
+
+Installs the Windows app, the CLI, and the MCP bundle.
+
 Support tickets built from e-mail for a small business: threading, business-hours SLA, reply drafts as `.eml`, macros, escalation to taskcraft and unhappy-customer signals to gaincraft. One SQLite file, one binary that is both CLI and MCP server. Part of the back-office craft suite (replaces Zendesk / Freshdesk / a shared support inbox).
 
 Status: **v0.2.0, Tier 2** (store + CLI + MCP + desktop window, tested). Synthetic demo mail only. **Nothing is ever sent by deskcraft**: replies are `.eml` drafts you send from your mail client.
