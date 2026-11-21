@@ -1,24 +1,33 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Install the Windows app, the CLI, and the MCP bundle for this craft.
+    Install the Windows app and the CLI for this craft.
 
 .DESCRIPTION
     VENDORED from mcp-central-docs\templates\craft-app (identical in every craft repo).
     Copies the release app and CLI into %LOCALAPPDATA%\Programs\<Display>, adds that
     folder to the user PATH, and creates a Start Menu shortcut for the app.
-    Registers the installed MCP exe with Cursor, Claude Desktop, Claude Code,
-    Antigravity, and OpenCode. When mcpb\manifest.json exists, packs the bundle
-    if dist\ does not already have one and installs it into Claude Desktop.
-    -Check prints the plan and writes nothing.
+    -RegisterClients also registers the installed MCP exe with the IDEs that are
+    present (Cursor, Claude Desktop, Claude Code, Antigravity, Windsurf, OpenCode).
+    -Clients limits that list. -Mcpb packs the Claude Desktop extension bundle when
+    mcpb\manifest.json exists and installs it. A .mcpb is Claude Desktop only.
+    -Uninstall removes the app, the Start Menu entries, the PATH entry, and the
+    IDE config entries. -Check prints the plan and writes nothing.
 
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1 -RegisterClients
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1 -RegisterClients -Clients cursor,claude-desktop
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1 -Mcpb
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1 -Check
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install-craft.ps1 -Uninstall
 #>
 param(
     [switch]$Check,
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    [switch]$RegisterClients,
+    [string[]]$Clients,
+    [switch]$Mcpb
 )
 
 $ErrorActionPreference = 'Stop'
@@ -154,23 +163,54 @@ if ($Uninstall) {
     Write-Host "[$($cfg.Name)] CLI on user PATH: $installDir" -ForegroundColor Green
 }
 
+$allowedClients = @('claude-desktop', 'cursor', 'antigravity', 'windsurf', 'opencode', 'claude-code')
+$clientList = @()
+foreach ($item in @($Clients)) {
+    if (-not $item) { continue }
+    foreach ($part in ($item -split ',')) {
+        $name = $part.Trim()
+        if (-not $name) { continue }
+        if ($allowedClients -notcontains $name) {
+            Write-Host "[$($cfg.Name)] unknown client '$name'. Use: $($allowedClients -join ', ')" -ForegroundColor Red
+            exit 1
+        }
+        if ($clientList -notcontains $name) { $clientList += $name }
+    }
+}
+$wantClients = $RegisterClients -or $clientList.Count -gt 0
+
 $mcpExe = Join-Path $installDir "$mcpBin.exe"
 if ($Check -or $Uninstall -or -not (Test-Path -LiteralPath $mcpExe)) {
     $mcpExe = $built[$mcpBin]
 }
-$writer = Join-Path (Split-Path -Parent $RepoRoot) 'mcp-central-docs\scripts\install-mcp-clients.ps1'
-if (-not (Test-Path -LiteralPath $writer)) {
-    Write-Host "[$($cfg.Name)] MCP client installer not found: $writer" -ForegroundColor Red
-    exit 1
+
+if ($Uninstall -or $wantClients) {
+    $writer = Join-Path (Split-Path -Parent $RepoRoot) 'mcp-central-docs\scripts\install-mcp-clients.ps1'
+    if (-not (Test-Path -LiteralPath $writer)) {
+        Write-Host "[$($cfg.Name)] MCP client installer not found: $writer" -ForegroundColor Red
+        if ($wantClients -and -not $Uninstall) { exit 1 }
+    } else {
+        $params = @{ Name = [string]$cfg.Name; Command = $mcpExe }
+        if ($mcpArgs.Count -gt 0) { $params.Arguments = $mcpArgs }
+        if ($Check) { $params.DryRun = $true }
+        if ($Uninstall) { $params.Uninstall = $true }
+        if ($clientList.Count -gt 0) { $params.Clients = $clientList }
+        & $writer @params
+    }
+} else {
+    Write-Host "[$($cfg.Name)] IDE registration skipped (pass -RegisterClients)" -ForegroundColor Yellow
 }
-$params = @{ Name = [string]$cfg.Name; Command = $mcpExe }
-if ($mcpArgs.Count -gt 0) { $params.Arguments = $mcpArgs }
-if ($Check) { $params.DryRun = $true }
-if ($Uninstall) { $params.Uninstall = $true }
-& $writer @params
 
 $mcpbScript = Join-Path (Split-Path -Parent $RepoRoot) 'mcp-central-docs\scripts\install-mcpb.ps1'
 $manifest = Join-Path $RepoRoot 'mcpb\manifest.json'
+if (-not $Mcpb) {
+    if ($Uninstall -and $cfg.Mcpb -and (Test-Path -LiteralPath $manifest)) {
+        Write-Host "[$($cfg.Name)] Claude Desktop bundle left installed. Remove it in Settings, Extensions." -ForegroundColor Yellow
+    } else {
+        Write-Host "[$($cfg.Name)] mcpb skipped (pass -Mcpb)" -ForegroundColor Yellow
+    }
+    exit 0
+}
 if (-not $cfg.Mcpb -or -not (Test-Path -LiteralPath $manifest)) {
     Write-Host "[$($cfg.Name)] no mcpb manifest; bundle skipped" -ForegroundColor Yellow
     exit 0
